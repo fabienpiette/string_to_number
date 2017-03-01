@@ -1,8 +1,6 @@
 # StringToNumber
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/string_to_number`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+A ruby gem to convert French words into numbers.
 
 ## Installation
 
@@ -22,7 +20,24 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require 'string_to_number'
+
+StringToNumber.in_numbers('zéro')
+#=> 0
+
+StringToNumber.in_numbers('dix-neuf')
+#=> 19
+
+StringToNumber.in_numbers('quatre-vingt-quatorze')
+#=> 94
+
+StringToNumber.in_numbers('neuf mille neuf cent quatre-vingt-dix neuf')
+#=> 9999
+
+StringToNumber.in_numbers('un million')
+#=> 1000000
+```
 
 ## Development
 
@@ -32,7 +47,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/string_to_number. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/FabienPiette/string_to_number. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 
 ## License
