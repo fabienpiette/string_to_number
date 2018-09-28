@@ -1,7 +1,7 @@
-require "spec_helper"
+require 'spec_helper'
 
 describe StringToNumber do
-  it "has a version number" do
+  it 'has a version number' do
     expect(StringToNumber::VERSION).not_to be nil
   end
 
@@ -164,6 +164,6 @@ describe StringToNumber do
     expect(StringToNumber.in_numbers('mille cent onze')).to eq(1111)
     expect(StringToNumber.in_numbers('deux mille huit cent soixante-dix neuf')).to eq(2879)
     expect(StringToNumber.in_numbers('neuf mille neuf cent quatre-vingt-dix neuf')).to eq(9999)
-    expect(StringToNumber.in_numbers('un million')).to eq(1000000)
+    expect(StringToNumber.in_numbers('un million')).to eq(1_000_000)
   end
 end

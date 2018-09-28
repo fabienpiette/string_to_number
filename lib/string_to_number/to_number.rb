@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module StringToNumber
   class ToNumber
-
     attr_accessor :sentence, :keys
 
     EXCEPTIONS = {
@@ -25,60 +26,60 @@ module StringToNumber
       'dix-sept' => 17,
       'dix-huit' => 18,
       'dix-neuf' => 19,
-      "vingt" => 20,
-      "trente" => 30,
-      "quarante" => 40,
-      "cinquante" => 50,
-      "soixante" => 60,
-      "soixante-dix" => 70,
-      "quatre-vingts" => 80,
-      "quatre-vingt" => 80,
-      "quatre-vingt-dix" => 90,
-      "quatre-vingts-dix" => 90
+      'vingt' => 20,
+      'trente' => 30,
+      'quarante' => 40,
+      'cinquante' => 50,
+      'soixante' => 60,
+      'soixante-dix' => 70,
+      'quatre-vingts' => 80,
+      'quatre-vingt' => 80,
+      'quatre-vingt-dix' => 90,
+      'quatre-vingts-dix' => 90
     }.freeze
 
     POWERS_OF_TEN = {
-      "un" => 0,
-      "dix" => 1,
-      "cent" => 2,
-      "mille" => 3,
-      "million" => 6,
-      "billion" => 9,
-      "trillion" => 12,
-      "quadrillion" => 15,
-      "quintillion" => 18,
-      "sextillion" => 21,
-      "septillion" => 24,
-      "octillion" => 27,
-      "nonillion" => 30,
-      "decillion" => 33,
-      "undecillion" => 36,
-      "duodecillion" => 39,
-      "tredecillion" => 42,
-      "quattuordecillion" => 45,
-      "quindecillion" => 48,
-      "sexdecillion" => 51,
-      "septendecillion" => 54,
-      "octodecillion" => 57,
-      "novemdecillion" => 60,
-      "vigintillion" => 63,
-      "unvigintillion" => 66,
-      "duovigintillion" => 69,
-      "trevigintillion" => 72,
-      "quattuorvigintillion" => 75,
-      "quinvigintillion" => 78,
-      "sexvigintillion" => 81,
-      "septenvigintillion" => 84,
-      "octovigintillion" => 87,
-      "novemvigintillion" => 90,
-      "trigintillion" => 93,
-      "untrigintillion" => 96,
-      "duotrigintillion" => 99,
-      "googol" => 100
+      'un' => 0,
+      'dix' => 1,
+      'cent' => 2,
+      'mille' => 3,
+      'million' => 6,
+      'billion' => 9,
+      'trillion' => 12,
+      'quadrillion' => 15,
+      'quintillion' => 18,
+      'sextillion' => 21,
+      'septillion' => 24,
+      'octillion' => 27,
+      'nonillion' => 30,
+      'decillion' => 33,
+      'undecillion' => 36,
+      'duodecillion' => 39,
+      'tredecillion' => 42,
+      'quattuordecillion' => 45,
+      'quindecillion' => 48,
+      'sexdecillion' => 51,
+      'septendecillion' => 54,
+      'octodecillion' => 57,
+      'novemdecillion' => 60,
+      'vigintillion' => 63,
+      'unvigintillion' => 66,
+      'duovigintillion' => 69,
+      'trevigintillion' => 72,
+      'quattuorvigintillion' => 75,
+      'quinvigintillion' => 78,
+      'sexvigintillion' => 81,
+      'septenvigintillion' => 84,
+      'octovigintillion' => 87,
+      'novemvigintillion' => 90,
+      'trigintillion' => 93,
+      'untrigintillion' => 96,
+      'duotrigintillion' => 99,
+      'googol' => 100
     }.freeze
 
     def initialize(sentence = '')
-      @keys = POWERS_OF_TEN.keys.reject{|k| %w(un dix).include?(k)}.join('|')
+      @keys = POWERS_OF_TEN.keys.reject { |k| %w[un dix].include?(k) }.join('|')
       @sentence = sentence
     end
 
@@ -92,7 +93,7 @@ module StringToNumber
       return 0 if sentence.nil? || sentence.empty?
       return EXCEPTIONS[sentence] unless EXCEPTIONS[sentence].nil?
 
-      if m = %r{(\w+)?\s?(#{keys})}.match(sentence)
+      if m = /(\w+)?\s?(#{keys})/.match(sentence)
         m1_length = if !EXCEPTIONS[m[1]].nil?
                       m[1].length
                     else
@@ -102,28 +103,27 @@ module StringToNumber
         sentence[m.offset(1)[0], m[1].length] = '' unless EXCEPTIONS[m[1]].nil?
         sentence[(m.offset(2)[0] - m1_length), m[2].length] = '' unless POWERS_OF_TEN[m[2]].nil?
 
-
         return extract(sentence, keys) +
-                 (EXCEPTIONS[m[1]] || 1) * (10 ** (POWERS_OF_TEN[m[2]] || 0))
+               (EXCEPTIONS[m[1]] || 1) * (10**(POWERS_OF_TEN[m[2]] || 0))
 
-      elsif m = %r{(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)}.match(sentence)
-        normalize_str = m[1].gsub(' ','-')
+      elsif m = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.match(sentence)
+        normalize_str = m[1].tr(' ', '-')
         normalize_str = normalize_str[0...-1] if normalize_str[normalize_str.length] == 's'
 
-        return extract(sentence.gsub!(m[0],''), keys) +
-                 EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
+        return extract(sentence.gsub!(m[0], ''), keys) +
+               EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
       else
         return match(sentence)
       end
     end
 
     def match(sentence)
-      sentence.gsub('-', ' ').split(' ').reverse.inject(0) do |sum, word|
-        if EXCEPTIONS[word].nil? && POWERS_OF_TEN[word].nil?
-          sum += 0
-        else
-          sum += (EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word]))
-        end
+      sentence.tr('-', ' ').split(' ').reverse.inject(0) do |sum, word|
+        sum += if EXCEPTIONS[word].nil? && POWERS_OF_TEN[word].nil?
+                 0
+               else
+                 (EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word]))
+               end
       end
     end
   end

@@ -1,11 +1,11 @@
-require "bundler/gem_tasks"
-require "rspec/core/rake_task"
+require 'bundler/gem_tasks'
+require 'rspec/core/rake_task'
 
 RSpec::Core::RakeTask.new(:spec)
 
-task :default => :spec
+task default: :spec
 
-task :env, [:env] do |_t, args|
+task :env, [:env] do |_t, _args|
   require 'string_to_number'
 end
 
