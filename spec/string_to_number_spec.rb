@@ -166,4 +166,56 @@ describe StringToNumber do
     expect(StringToNumber.in_numbers('neuf mille neuf cent quatre-vingt-dix neuf')).to eq(9999)
     expect(StringToNumber.in_numbers('un million')).to eq(1_000_000)
   end
+
+  it 'convert 34_551' do
+    expect(
+      StringToNumber.in_numbers(
+        'trente-quatre mille cinq cent cinquante-et-un'
+      )
+    ).to eq(34_551)
+  end
+
+  it 'convert 21 882' do
+    expect(
+      StringToNumber.in_numbers(
+        'vingt et un mille huit cent quatre-vingt deux'
+      )
+    ).to eq(21_882)
+  end
+
+  it 'convert 799' do
+    expect(
+      StringToNumber.in_numbers(
+        'sept cent quatre-vingt-dix neuf'
+      )
+    ).to eq(799)
+  end
+
+  it 'convert 346 799' do
+    expect(
+      StringToNumber.in_numbers(
+        'trois cent quarante six mille '\
+        'sept cent quatre-vingt-dix neuf'
+      )
+    ).to eq(346_799)
+  end
+
+  it 'convert 676 824' do
+    expect(
+      StringToNumber.in_numbers(
+        'six cent soixante-seize mille '\
+        'huit cent vingt-quatre'
+      )
+    ).to eq(676_824)
+  end
+
+  it 'convert 75 346 799' do
+    expect(
+      StringToNumber.in_numbers(
+        'soixante-quinze million '\
+        'trois cent quarante six mille '\
+        'sept cent quatre-vingt-dix neuf'
+      )
+    ).to eq(75_346_799)
+  end
 end

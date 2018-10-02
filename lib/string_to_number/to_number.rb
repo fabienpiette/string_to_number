@@ -89,28 +89,45 @@ module StringToNumber
 
     private
 
-    def extract(sentence, keys)
+    def extract(sentence, keys, detail: false)
       return 0 if sentence.nil? || sentence.empty?
       return EXCEPTIONS[sentence] unless EXCEPTIONS[sentence].nil?
 
-      if m = /(\w+)?\s?(#{keys})/.match(sentence)
-        m1_length = if !EXCEPTIONS[m[1]].nil?
-                      m[1].length
-                    else
-                      0
-                    end
+      if result = /(?<f>.*?)\s?(?<m>#{keys})/.match(sentence)
+        # Deleting matching element
+        sentence.gsub!($&, '') if $&
 
-        sentence[m.offset(1)[0], m[1].length] = '' unless EXCEPTIONS[m[1]].nil?
-        sentence[(m.offset(2)[0] - m1_length), m[2].length] = '' unless POWERS_OF_TEN[m[2]].nil?
+        # Extract matching element
+        factor          = EXCEPTIONS[result[:f]] || match(result[:f])
+        factor          = 1 if factor.zero?
+        multiple_of_ten = 10**(POWERS_OF_TEN[result[:m]] || 0)
 
-        return extract(sentence, keys) +
-               (EXCEPTIONS[m[1]] || 1) * (10**(POWERS_OF_TEN[m[2]] || 0))
+        # Check if this multiple is over
+        if /#{higher_multiple(result[:m]).keys.join('|')}/.match(sentence)
+          details = extract(sentence, keys, detail: true)
+
+          factor          = (factor * multiple_of_ten) + details[:factor]
+          multiple_of_ten = details[:multiple_of_ten]
+          sentence        = details[:sentence]
+        end
+
+        if detail
+          return {
+            factor: factor,
+            multiple_of_ten: multiple_of_ten,
+            sentence: sentence
+          }
+        end
+
+        return extract(sentence, keys) + factor * multiple_of_ten
 
       elsif m = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.match(sentence)
         normalize_str = m[1].tr(' ', '-')
         normalize_str = normalize_str[0...-1] if normalize_str[normalize_str.length] == 's'
 
-        return extract(sentence.gsub!(m[0], ''), keys) +
+        sentence.gsub!(m[0], '')
+
+        return extract(sentence, keys) +
                EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
       else
         return match(sentence)
@@ -118,12 +135,20 @@ module StringToNumber
     end
 
     def match(sentence)
-      sentence.tr('-', ' ').split(' ').reverse.inject(0) do |sum, word|
-        sum += if EXCEPTIONS[word].nil? && POWERS_OF_TEN[word].nil?
-                 0
-               else
-                 (EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word]))
-               end
+      return if sentence.nil?
+
+      sentence.tr('-', ' ').split(' ').reverse.sum do |word|
+        if EXCEPTIONS[word].nil? && POWERS_OF_TEN[word].nil?
+          0
+        else
+          (EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word]))
+        end
+      end
+    end
+
+    def higher_multiple(multiple)
+      POWERS_OF_TEN.select do |_k, v|
+        v > POWERS_OF_TEN[multiple]
       end
     end
   end
