@@ -218,4 +218,117 @@ describe StringToNumber do
       )
     ).to eq(75_346_799)
   end
+
+  describe 'edge cases and potential issues' do
+    context 'case sensitivity' do
+      it 'handles capitalized numbers' do
+        expect(StringToNumber.in_numbers('Vingt')).to eq(20)
+        expect(StringToNumber.in_numbers('CENT')).to eq(100)
+        expect(StringToNumber.in_numbers('Mille')).to eq(1000)
+      end
+    end
+
+    context 'feminine forms' do
+      it 'handles feminine "une"' do
+        expect(StringToNumber.in_numbers('une')).to eq(1)
+        expect(StringToNumber.in_numbers('vingt et une')).to eq(21)
+        expect(StringToNumber.in_numbers('trente et une')).to eq(31)
+      end
+    end
+
+    context 'regional French variations' do
+      it 'handles Belgian/Swiss French numbers' do
+        expect(StringToNumber.in_numbers('septante')).to eq(70)
+        expect(StringToNumber.in_numbers('huitante')).to eq(80)
+        expect(StringToNumber.in_numbers('nonante')).to eq(90)
+        expect(StringToNumber.in_numbers('septante-cinq')).to eq(75)
+        expect(StringToNumber.in_numbers('nonante-neuf')).to eq(99)
+      end
+    end
+
+    context 'French large number scale' do
+      it 'handles milliard (French billion)' do
+        expect(StringToNumber.in_numbers('un milliard')).to eq(1_000_000_000)
+        expect(StringToNumber.in_numbers('deux milliards')).to eq(2_000_000_000)
+        expect(StringToNumber.in_numbers('cinq cents millions')).to eq(500_000_000)
+        expect(StringToNumber.in_numbers('trois milliards cinq cents millions')).to eq(3_500_000_000)
+      end
+
+      it 'handles billion as French trillion' do
+        expect(StringToNumber.in_numbers('un billion')).to eq(1_000_000_000_000)
+      end
+    end
+
+    context 'complex "et" conjunction usage' do
+      it 'handles "et" with larger numbers' do
+        expect(StringToNumber.in_numbers('mille et un')).to eq(1001)
+        expect(StringToNumber.in_numbers('deux cent et un')).to eq(201)
+        expect(StringToNumber.in_numbers('trois cent et un')).to eq(301)
+        expect(StringToNumber.in_numbers('mille et une')).to eq(1001)
+      end
+
+      it 'handles hyphenated "et"' do
+        expect(StringToNumber.in_numbers('vingt-et-un')).to eq(21)
+        expect(StringToNumber.in_numbers('trente-et-un')).to eq(31)
+        expect(StringToNumber.in_numbers('cinquante-et-un')).to eq(51)
+      end
+    end
+
+    context 'quatre-vingts plural forms' do
+      it 'handles quatre-vingts with s' do
+        expect(StringToNumber.in_numbers('quatre-vingts')).to eq(80)
+        expect(StringToNumber.in_numbers('quatre vingts')).to eq(80)
+      end
+
+      it 'handles quatre-vingt compounds correctly' do
+        expect(StringToNumber.in_numbers('quatre-vingts-un')).to eq(81)
+        expect(StringToNumber.in_numbers('quatre-vingts-dix')).to eq(90)
+      end
+    end
+
+    context 'space vs hyphen variations' do
+      it 'handles space-separated numbers' do
+        expect(StringToNumber.in_numbers('vingt un')).to eq(21)
+        expect(StringToNumber.in_numbers('trente quatre')).to eq(34)
+        expect(StringToNumber.in_numbers('cinquante neuf')).to eq(59)
+      end
+    end
+
+    context 'alternative spellings and forms' do
+      it 'handles alternative number words' do
+        expect(StringToNumber.in_numbers('zero')).to eq(0)  # without accent
+      end
+    end
+
+    context 'ordinal numbers' do
+      it 'handles basic ordinal numbers' do
+        pending 'Ordinal numbers not yet implemented'
+        expect(StringToNumber.in_numbers('premier')).to eq(1)
+        expect(StringToNumber.in_numbers('première')).to eq(1)
+        expect(StringToNumber.in_numbers('deuxième')).to eq(2)
+        expect(StringToNumber.in_numbers('troisième')).to eq(3)
+        expect(StringToNumber.in_numbers('vingt-et-unième')).to eq(21)
+      end
+    end
+
+    context 'error handling' do
+      it 'handles empty and nil inputs' do
+        expect(StringToNumber.in_numbers('')).to eq(0)
+        expect(StringToNumber.in_numbers(nil)).to eq(0)
+      end
+
+      it 'handles invalid inputs gracefully' do
+        expect(StringToNumber.in_numbers('invalid')).to eq(0)
+        expect(StringToNumber.in_numbers('not a number')).to eq(0)
+        expect(StringToNumber.in_numbers('123')).to eq(0)  # numeric strings
+      end
+    end
+
+    context 'mixed valid and invalid content' do
+      it 'extracts numbers from mixed content' do
+        expect(StringToNumber.in_numbers('vingt invalid')).to eq(20)
+        expect(StringToNumber.in_numbers('invalid vingt')).to eq(20)
+      end
+    end
+  end
 end
