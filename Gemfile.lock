@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    string_to_number (0.1.4)
+    string_to_number (0.2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -32,4 +32,4 @@ DEPENDENCIES
   string_to_number!
 
 BUNDLED WITH
-   2.3.23
+   2.3.26
