@@ -1,47 +1,49 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'benchmark'
 
+# Test data sets for different complexity levels
+SIMPLE_NUMBERS = %w[
+  un deux trois quatre cinq six sept huit neuf dix
+  vingt trente quarante cinquante soixante soixante-dix
+  quatre-vingt quatre-vingt-dix cent
+].freeze
+
+MEDIUM_NUMBERS = [
+  'vingt et un', 'trente-deux', 'quarante-trois', 'cinquante-quatre',
+  'soixante-cinq', 'soixante-dix-sept', 'quatre-vingt-huit', 'quatre-vingt-dix-neuf',
+  'cent un', 'deux cent cinquante', 'trois cent quarante-six',
+  'neuf cent quatre-vingt-dix-neuf'
+].freeze
+
+COMPLEX_NUMBERS = [
+  'mille deux cent trente-quatre',
+  'vingt et un mille huit cent quatre-vingt deux',
+  'trois cent quarante six mille sept cent quatre-vingt-dix neuf',
+  'soixante-quinze million trois cent quarante six mille sept cent quatre-vingt-dix neuf',
+  'un milliard deux cent millions',
+  'trois milliards cinq cents millions'
+].freeze
+
+EDGE_CASES = [
+  # Case variations
+  'VINGT', 'Cent', 'MiLlE',
+  # Regional variations
+  'septante', 'huitante', 'nonante',
+  # Feminine forms
+  'une', 'vingt et une', 'trente et une',
+  # Complex et usage
+  'mille et un', 'deux cent et un',
+  # Quatre-vingt variations
+  'quatre-vingts', 'quatre vingts', 'quatre-vingts-dix'
+].freeze
+
 describe 'StringToNumber Performance Tests' do
-  # Test data sets for different complexity levels
-  SIMPLE_NUMBERS = [
-    'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
-    'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix',
-    'quatre-vingt', 'quatre-vingt-dix', 'cent'
-  ].freeze
-
-  MEDIUM_NUMBERS = [
-    'vingt et un', 'trente-deux', 'quarante-trois', 'cinquante-quatre',
-    'soixante-cinq', 'soixante-dix-sept', 'quatre-vingt-huit', 'quatre-vingt-dix-neuf',
-    'cent un', 'deux cent cinquante', 'trois cent quarante-six',
-    'neuf cent quatre-vingt-dix-neuf'
-  ].freeze
-
-  COMPLEX_NUMBERS = [
-    'mille deux cent trente-quatre',
-    'vingt et un mille huit cent quatre-vingt deux',
-    'trois cent quarante six mille sept cent quatre-vingt-dix neuf',
-    'soixante-quinze million trois cent quarante six mille sept cent quatre-vingt-dix neuf',
-    'un milliard deux cent millions',
-    'trois milliards cinq cents millions'
-  ].freeze
-
-  EDGE_CASES = [
-    # Case variations
-    'VINGT', 'Cent', 'MiLlE',
-    # Regional variations
-    'septante', 'huitante', 'nonante',
-    # Feminine forms
-    'une', 'vingt et une', 'trente et une',
-    # Complex et usage
-    'mille et un', 'deux cent et un',
-    # Quatre-vingt variations
-    'quatre-vingts', 'quatre vingts', 'quatre-vingts-dix'
-  ].freeze
-
   # Helper method to run performance benchmarks
   def benchmark_conversion(test_cases, description, iterations = 1000)
     puts "\n#{description}"
-    puts "=" * 50
+    puts '=' * 50
     puts "Test cases: #{test_cases.size}"
     puts "Iterations per case: #{iterations}"
     puts "Total conversions: #{test_cases.size * iterations}"
@@ -66,31 +68,31 @@ describe 'StringToNumber Performance Tests' do
     puts "Conversions per second: #{conversions_per_second.round(0)}"
 
     # Performance assertions (adjust thresholds as needed)
-    expect(avg_time_per_conversion).to be < 1.0, "Average conversion time should be under 1ms"
-    expect(conversions_per_second).to be > 1000, "Should handle at least 1000 conversions per second"
+    expect(avg_time_per_conversion).to be < 1.0, 'Average conversion time should be under 1ms'
+    expect(conversions_per_second).to be > 1000, 'Should handle at least 1000 conversions per second'
 
-    { 
-      total_time: total_time, 
-      avg_time_ms: avg_time_per_conversion, 
-      conversions_per_second: conversions_per_second 
+    {
+      total_time: total_time,
+      avg_time_ms: avg_time_per_conversion,
+      conversions_per_second: conversions_per_second
     }
   end
 
   describe 'Basic Performance Benchmarks' do
     it 'performs well with simple numbers (0-100)' do
-      benchmark_conversion(SIMPLE_NUMBERS, "Simple Numbers (0-100)", 5000)
+      benchmark_conversion(SIMPLE_NUMBERS, 'Simple Numbers (0-100)', 5000)
     end
 
     it 'performs well with medium complexity numbers (100-1000)' do
-      benchmark_conversion(MEDIUM_NUMBERS, "Medium Complexity Numbers (100-1000)", 2000)
+      benchmark_conversion(MEDIUM_NUMBERS, 'Medium Complexity Numbers (100-1000)', 2000)
     end
 
     it 'performs well with complex numbers (1000+)' do
-      benchmark_conversion(COMPLEX_NUMBERS, "Complex Numbers (1000+)", 1000)
+      benchmark_conversion(COMPLEX_NUMBERS, 'Complex Numbers (1000+)', 1000)
     end
 
     it 'handles edge cases efficiently' do
-      benchmark_conversion(EDGE_CASES, "Edge Cases and Special Patterns", 2000)
+      benchmark_conversion(EDGE_CASES, 'Edge Cases and Special Patterns', 2000)
     end
   end
 
@@ -105,18 +107,18 @@ describe 'StringToNumber Performance Tests' do
       iterations = 2000
 
       results = []
-      [short_input, medium_input, long_input, very_long_input].each_with_index do |input, index|
+      [short_input, medium_input, long_input, very_long_input].each_with_index do |input, _index|
         length = input.length
         puts "\nTesting input length: #{length} characters"
         puts "Input: '#{input}'"
-        
+
         time = Benchmark.realtime do
           iterations.times { StringToNumber.in_numbers(input) }
         end
-        
+
         avg_time = (time / iterations) * 1000
         results << { length: length, avg_time: avg_time }
-        
+
         puts "Average time: #{avg_time.round(4)} ms"
       end
 
@@ -124,14 +126,14 @@ describe 'StringToNumber Performance Tests' do
       # Allow for some increase but not more than 10x from shortest to longest
       shortest_time = results.first[:avg_time]
       longest_time = results.last[:avg_time]
-      
-      expect(longest_time / shortest_time).to be < 10, 
-        "Performance should not degrade more than 10x with input length"
+
+      expect(longest_time / shortest_time).to be < 10,
+                                              'Performance should not degrade more than 10x with input length'
     end
 
     it 'handles concurrent access efficiently' do
       # Test thread safety and concurrent performance
-      skip "Skipping concurrent test in single-threaded environment" if ENV['CI']
+      skip 'Skipping concurrent test in single-threaded environment' if ENV['CI']
 
       threads = []
       results = []
@@ -140,7 +142,6 @@ describe 'StringToNumber Performance Tests' do
       # Simulate concurrent access with multiple threads
       4.times do |i|
         threads << Thread.new do
-          local_results = []
           test_cases = SIMPLE_NUMBERS + MEDIUM_NUMBERS
 
           time = Benchmark.realtime do
@@ -159,7 +160,7 @@ describe 'StringToNumber Performance Tests' do
 
       total_conversions = results.sum { |r| r[:conversions] }
       total_time = results.map { |r| r[:time] }.max # Use max time since threads run concurrently
-      
+
       puts "\nConcurrent Performance Test:"
       puts "Threads: #{results.size}"
       puts "Total conversions: #{total_conversions}"
@@ -175,7 +176,7 @@ describe 'StringToNumber Performance Tests' do
     it 'has reasonable memory footprint' do
       # Measure memory usage during intensive operations
       require 'objspace'
-      
+
       # Force garbage collection before starting
       GC.start
       initial_objects = ObjectSpace.count_objects[:TOTAL]
@@ -190,14 +191,14 @@ describe 'StringToNumber Performance Tests' do
       final_objects = ObjectSpace.count_objects[:TOTAL]
 
       object_growth = final_objects - initial_objects
-      
+
       puts "\nMemory Usage Test:"
       puts "Initial objects: #{initial_objects}"
       puts "Final objects: #{final_objects}"
       puts "Object growth: #{object_growth}"
 
       # Should not create excessive temporary objects
-      expect(object_growth).to be < 10000, "Should not create excessive temporary objects"
+      expect(object_growth).to be < 10_000, 'Should not create excessive temporary objects'
     end
 
     it 'cleans up temporary objects efficiently' do
@@ -217,18 +218,18 @@ describe 'StringToNumber Performance Tests' do
 
       puts "\nMemory Growth Test:"
       puts "Initial memory: #{initial_memory} KB"
-      puts "Final memory: #{final_memory} KB"  
+      puts "Final memory: #{final_memory} KB"
       puts "Memory growth: #{memory_growth} KB"
 
       # Should not grow memory excessively (allow some growth for Ruby internals)
-      expect(memory_growth).to be < 10000, "Memory growth should be minimal"
+      expect(memory_growth).to be < 10_000, 'Memory growth should be minimal'
     end
   end
 
   describe 'Comparative Performance Analysis' do
     it 'compares performance across different number types' do
       test_groups = {
-        'Direct lookups (EXCEPTIONS)' => ['un', 'vingt', 'cent', 'mille'],
+        'Direct lookups (EXCEPTIONS)' => %w[un vingt cent mille],
         'Simple compounds' => ['vingt et un', 'trente-deux', 'quarante-trois'],
         'Hundreds' => ['deux cent', 'trois cent cinquante', 'neuf cent quatre-vingt-dix-neuf'],
         'Thousands' => ['mille', 'deux mille', 'vingt mille', 'cent mille'],
@@ -257,7 +258,7 @@ describe 'StringToNumber Performance Tests' do
       complex_time = results['Complex compounds']
 
       expect(direct_lookup_time).to be < complex_time,
-        "Direct lookups should be faster than complex parsing"
+                                    'Direct lookups should be faster than complex parsing'
     end
   end
 
@@ -284,7 +285,7 @@ describe 'StringToNumber Performance Tests' do
         puts "Average time: #{avg_time_ms.round(4)} ms (limit: #{max_time} ms)"
 
         expect(avg_time_ms).to be < max_time,
-          "Performance regression detected for '#{input}': #{avg_time_ms.round(4)}ms > #{max_time}ms"
+                               "Performance regression detected for '#{input}': #{avg_time_ms.round(4)}ms > #{max_time}ms"
       end
     end
   end

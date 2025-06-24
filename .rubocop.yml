@@ -1,0 +1,110 @@
+AllCops:
+  TargetRubyVersion: 2.7
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+    - 'pkg/**/*'
+    - 'tmp/**/*'
+    - 'bin/**/*'
+    - 'spec/fixtures/**/*'
+  SuggestExtensions: false
+
+# Prefer double quotes for strings
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+# Allow longer lines for readability
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+# Allow longer methods for complex parsing logic
+Metrics/MethodLength:
+  Max: 25
+  Exclude:
+    - 'spec/**/*'
+    - 'benchmark.rb'
+    - 'microbenchmark.rb'
+    - 'performance_comparison.rb'
+    - 'lib/string_to_number/parser.rb'
+    - 'lib/string_to_number/to_number.rb'
+
+# Allow longer classes for main implementation
+Metrics/ClassLength:
+  Max: 250
+
+# Allow longer blocks for test files
+Metrics/BlockLength:
+  Max: 300
+  Exclude:
+    - 'spec/**/*'
+
+# Allow more complex methods in parser
+Metrics/CyclomaticComplexity:
+  Max: 12
+  Exclude:
+    - 'benchmark.rb'
+    - 'microbenchmark.rb'
+    - 'performance_comparison.rb'
+    - 'lib/string_to_number/parser.rb'
+    - 'lib/string_to_number/to_number.rb'
+
+# Allow higher ABC size for parsing methods
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'spec/**/*'
+    - 'benchmark.rb'
+    - 'microbenchmark.rb'
+    - 'performance_comparison.rb'
+    - 'lib/string_to_number/parser.rb'
+    - 'lib/string_to_number/to_number.rb'
+
+# Allow higher perceived complexity for performance-critical methods
+Metrics/PerceivedComplexity:
+  Max: 8
+  Exclude:
+    - 'benchmark.rb'
+    - 'microbenchmark.rb'
+    - 'performance_comparison.rb'
+    - 'lib/string_to_number/parser.rb'
+    - 'lib/string_to_number/to_number.rb'
+
+# Allow multiple assignments for performance reasons
+Style/ParallelAssignment:
+  Enabled: false
+
+# Allow guard clauses without else
+Style/GuardClause:
+  Enabled: false
+
+# Documentation requirements
+Style/Documentation:
+  Enabled: false
+
+# Allow frozen string literal comments
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+
+# Layout preferences
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: aligned
+
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: aligned
+
+# Naming conventions
+Naming/PredicatePrefix:
+  ForbiddenPrefixes:
+    - is_
+
+# Allow single line methods
+Style/SingleLineMethods:
+  AllowIfMethodIsEmpty: true
+
+# Gem specific rules
+Gemspec/RequiredRubyVersion:
+  Enabled: false

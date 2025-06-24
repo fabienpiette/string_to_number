@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'string_to_number/version'
 
 # Load original implementation first for constant definitions
@@ -78,18 +80,18 @@ module StringToNumber
     #
     def valid_french_number?(text)
       return false unless text.respond_to?(:to_s)
-      
+
       normalized = text.to_s.downcase.strip
       return false if normalized.empty?
-      
+
       # Check if any words are recognized French number words
       words = normalized.tr('-', ' ').split(/\s+/)
       recognized_words = words.count do |word|
-        word == 'et' || 
-        Parser::WORD_VALUES.key?(word) || 
-        Parser::MULTIPLIERS.key?(word)
+        word == 'et' ||
+          Parser::WORD_VALUES.key?(word) ||
+          Parser::MULTIPLIERS.key?(word)
       end
-      
+
       # Require at least 50% recognized words for validation
       recognized_words.to_f / words.size >= 0.5
     end

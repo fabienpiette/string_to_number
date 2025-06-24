@@ -2,7 +2,7 @@
 
 module StringToNumber
   # High-performance French text to number parser
-  # 
+  #
   # This class provides a clean, optimized implementation that maintains
   # compatibility with the original algorithm while adding significant
   # performance improvements through caching and memoization.
@@ -23,9 +23,9 @@ module StringToNumber
     # Pre-compiled regex patterns for optimal performance
     MULTIPLIER_KEYS = MULTIPLIERS.keys.reject { |k| %w[un dix].include?(k) }
                                  .sort_by(&:length).reverse.freeze
-    MULTIPLIER_PATTERN = /(?<f>.*?)\s?(?<m>#{MULTIPLIER_KEYS.join('|')})/
-    QUATRE_VINGT_PATTERN = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/
-    
+    MULTIPLIER_PATTERN = /(?<f>.*?)\s?(?<m>#{MULTIPLIER_KEYS.join('|')})/.freeze
+    QUATRE_VINGT_PATTERN = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.freeze
+
     # Cache configuration
     MAX_CACHE_SIZE = 1000
     private_constant :MAX_CACHE_SIZE
@@ -45,7 +45,7 @@ module StringToNumber
       # @raise [ArgumentError] if text is not a string
       def convert(text)
         validate_input!(text)
-        
+
         normalized = normalize_text(text)
         return 0 if normalized.empty?
 
@@ -56,7 +56,7 @@ module StringToNumber
         # Get or create parser instance and convert
         parser = get_cached_instance(normalized)
         result = parser.parse_optimized(normalized)
-        
+
         # Cache the result
         cache_conversion(normalized, result)
         result
@@ -68,7 +68,7 @@ module StringToNumber
           @conversion_cache.clear
           @cache_access_order.clear
         end
-        
+
         @instance_mutex.synchronize do
           @instance_cache.clear
         end
@@ -115,7 +115,7 @@ module StringToNumber
             oldest = @cache_access_order.shift
             @conversion_cache.delete(oldest)
           end
-          
+
           @conversion_cache[normalized_text] = result
           @cache_access_order.push(normalized_text)
         end
@@ -129,6 +129,7 @@ module StringToNumber
 
       def calculate_hit_ratio
         return 0.0 if @cache_access_order.empty?
+
         @conversion_cache.size.to_f / @cache_access_order.size
       end
     end
@@ -147,7 +148,7 @@ module StringToNumber
     # but with performance optimizations
     def parse_optimized(text)
       return 0 if text.nil? || text.empty?
-      
+
       # Direct lookup (fastest path)
       return WORD_VALUES[text] if WORD_VALUES.key?(text)
 
@@ -162,12 +163,12 @@ module StringToNumber
     # but with performance improvements
     def extract_optimized(sentence, keys, detail: false)
       return 0 if sentence.nil? || sentence.empty?
-      
+
       # Direct lookup
       return WORD_VALUES[sentence] if WORD_VALUES.key?(sentence)
 
       # Main pattern matching using pre-compiled regex
-      if result = MULTIPLIER_PATTERN.match(sentence)
+      if (result = MULTIPLIER_PATTERN.match(sentence))
         # Remove matched portion
         sentence = sentence.gsub(result[0], '') if result[0]
 
@@ -193,19 +194,19 @@ module StringToNumber
           }
         end
 
-        return extract_optimized(sentence, keys) + factor * multiple_of_ten
+        extract_optimized(sentence, keys) + (factor * multiple_of_ten)
 
       # Quatre-vingt special handling
-      elsif m = QUATRE_VINGT_PATTERN.match(sentence)
+      elsif (m = QUATRE_VINGT_PATTERN.match(sentence))
         normalize_str = m[1].tr(' ', '-')
         normalize_str = normalize_str[0...-1] if normalize_str[-1] == 's'
 
         sentence = sentence.gsub(m[0], '')
 
-        return extract_optimized(sentence, keys) +
-               WORD_VALUES[normalize_str] + (WORD_VALUES[m[8]] || 0)
+        extract_optimized(sentence, keys) +
+          WORD_VALUES[normalize_str] + (WORD_VALUES[m[8]] || 0)
       else
-        return match_optimized(sentence)
+        match_optimized(sentence)
       end
     end
 
@@ -213,8 +214,9 @@ module StringToNumber
     def match_optimized(sentence)
       return 0 if sentence.nil?
 
-      sentence.tr('-', ' ').split(' ').reverse.sum do |word|
+      sentence.tr('-', ' ').split.reverse.sum do |word|
         next 0 if word == 'et'
+
         WORD_VALUES[word] || (MULTIPLIERS[word] ? 10 * MULTIPLIERS[word] : 0)
       end
     end

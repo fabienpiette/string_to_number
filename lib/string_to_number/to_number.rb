@@ -47,8 +47,8 @@ module StringToNumber
       'quatre-vingt' => 80,     # Standard French: "four-twenty" (singular)
       'huitante' => 80,         # Swiss French alternative
       'quatre-vingt-dix' => 90, # Standard French: "four-twenty-ten"
-      'quatre-vingts-dix' => 90,# Alternative with plural "vingts"
-      'nonante' => 90           # Belgian/Swiss French alternative
+      'quatre-vingts-dix' => 90, # Alternative with plural "vingts"
+      'nonante' => 90 # Belgian/Swiss French alternative
     }.freeze
 
     # POWERS_OF_TEN maps French number words to their power of 10 exponents
@@ -100,7 +100,7 @@ module StringToNumber
       'trigintillion' => 93,
       'untrigintillion' => 96,
       'duotrigintillion' => 99,
-      'googol' => 100      # Special case: 10^100
+      'googol' => 100 # Special case: 10^100
     }.freeze
 
     # Initialize the ToNumber parser with a French sentence
@@ -111,7 +111,7 @@ module StringToNumber
       # Sort keys by length (longest first) to ensure longer matches are preferred
       # This prevents "cent" from matching before "cents" in "cinq cents"
       sorted_keys = POWERS_OF_TEN.keys.reject { |k| %w[un dix].include?(k) }.sort_by(&:length).reverse
-      @keys = sorted_keys.join('|')  # Create regex alternation pattern
+      @keys = sorted_keys.join('|') # Create regex alternation pattern
       # Normalize input to lowercase for case-insensitive matching
       @sentence = sentence&.downcase || ''
     end
@@ -133,10 +133,10 @@ module StringToNumber
     def extract(sentence, keys, detail: false)
       # Base cases: handle empty/nil input
       return 0 if sentence.nil? || sentence.empty?
-      
+
       # Ensure case-insensitive matching
       sentence = sentence.downcase
-      
+
       # Direct lookup for simple cases (e.g., "vingt" -> 20)
       return EXCEPTIONS[sentence] unless EXCEPTIONS[sentence].nil?
 
@@ -146,19 +146,19 @@ module StringToNumber
       #   (?<f>.*?) - Non-greedy capture of factor part (before multiplier)
       #   \s?       - Optional space
       #   (?<m>#{keys}) - Named capture of multiplier from keys pattern
-      if result = /(?<f>.*?)\s?(?<m>#{keys})/.match(sentence)
+      if (result = /(?<f>.*?)\s?(?<m>#{keys})/.match(sentence))
         # Remove the matched portion from sentence for further processing
-        sentence.gsub!($&, '') if $&
+        sentence.gsub!(::Regexp.last_match(0), '') if ::Regexp.last_match(0)
 
         # Parse the factor part (number before the multiplier)
         # Example: "cinq" -> 5, "deux cent" -> 200
         factor = EXCEPTIONS[result[:f]] || match(result[:f])
-        
+
         # Handle implicit factor of 1 for standalone multipliers
         # Example: "million" -> factor=1, but only for top-level calls
         # For recursive calls (detail=true), keep factor as 0 to avoid double-counting
         factor = 1 if factor.zero? && !detail
-        
+
         # Calculate the multiplier value (10^exponent)
         # Example: "cents" -> 10^2 = 100, "millions" -> 10^6 = 1,000,000
         multiple_of_ten = 10**(POWERS_OF_TEN[result[:m]] || 0)
@@ -192,17 +192,17 @@ module StringToNumber
 
         # Final calculation: process any remaining sentence + current factor*multiplier
         # Example: For "trois millions cinq cents", this handles the "cinq cents" part
-        return extract(sentence, keys) + factor * multiple_of_ten
+        extract(sentence, keys) + (factor * multiple_of_ten)
 
       # Special case handling for "quatre-vingt" variations
       # This complex regex handles the irregular French "eighty" patterns:
       # - "quatre-vingt" / "quatre vingts" (with/without 's')
       # - "quatre-vingt-dix" / "quatre vingts dix" (90)
       # - Space vs hyphen variations
-      elsif m = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.match(sentence)
+      elsif (m = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.match(sentence))
         # Normalize spacing to hyphens for consistent lookup
         normalize_str = m[1].tr(' ', '-')
-        
+
         # Remove trailing 's' from "quatre-vingts" if present
         # Bug fix: use [-1] instead of [length] for last character
         normalize_str = normalize_str[0...-1] if normalize_str[-1] == 's'
@@ -212,11 +212,11 @@ module StringToNumber
 
         # Return sum of: remaining sentence + normalized quatre-vingt value + any suffix
         # Example: "quatre-vingt-cinq" -> EXCEPTIONS["quatre-vingt"] + EXCEPTIONS["cinq"]
-        return extract(sentence, keys) +
-               EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
+        extract(sentence, keys) +
+          EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
       else
         # Fallback: use match() method for simple word combinations
-        return match(sentence)
+        match(sentence)
       end
     end
 
@@ -229,11 +229,11 @@ module StringToNumber
 
       # Process words in reverse order for proper French number logic
       # Example: "vingt et un" -> ["un", "et", "vingt"] -> 1 + 0 + 20 = 21
-      sentence.downcase.tr('-', ' ').split(' ').reverse.sum do |word|
+      sentence.downcase.tr('-', ' ').split.reverse.sum do |word|
         # Handle French "et" (and) conjunction by ignoring it in calculations
         # Example: "vingt et un" -> ignore "et", sum "vingt" + "un"
         next 0 if word == 'et'
-        
+
         # Look up word value in either EXCEPTIONS or POWERS_OF_TEN
         if EXCEPTIONS[word].nil? && POWERS_OF_TEN[word].nil?
           # Unknown words contribute 0 to the sum
@@ -241,8 +241,8 @@ module StringToNumber
         else
           # Use EXCEPTIONS value if available, otherwise use 10 * power_of_ten
           # Example: "dix" -> EXCEPTIONS["dix"] = 10
-          #          "cent" -> 10 * POWERS_OF_TEN["cent"] = 10 * 2 = 100  
-          (EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word]))
+          #          "cent" -> 10 * POWERS_OF_TEN["cent"] = 10 * 2 = 100
+          EXCEPTIONS[word] || (10 * POWERS_OF_TEN[word])
         end
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe StringToNumber do
@@ -194,7 +196,7 @@ describe StringToNumber do
   it 'convert 346 799' do
     expect(
       StringToNumber.in_numbers(
-        'trois cent quarante six mille '\
+        'trois cent quarante six mille ' \
         'sept cent quatre-vingt-dix neuf'
       )
     ).to eq(346_799)
@@ -203,7 +205,7 @@ describe StringToNumber do
   it 'convert 676 824' do
     expect(
       StringToNumber.in_numbers(
-        'six cent soixante-seize mille '\
+        'six cent soixante-seize mille ' \
         'huit cent vingt-quatre'
       )
     ).to eq(676_824)
@@ -212,8 +214,8 @@ describe StringToNumber do
   it 'convert 75 346 799' do
     expect(
       StringToNumber.in_numbers(
-        'soixante-quinze million '\
-        'trois cent quarante six mille '\
+        'soixante-quinze million ' \
+        'trois cent quarante six mille ' \
         'sept cent quatre-vingt-dix neuf'
       )
     ).to eq(75_346_799)
@@ -296,7 +298,7 @@ describe StringToNumber do
 
     context 'alternative spellings and forms' do
       it 'handles alternative number words' do
-        expect(StringToNumber.in_numbers('zero')).to eq(0)  # without accent
+        expect(StringToNumber.in_numbers('zero')).to eq(0) # without accent
       end
     end
 
@@ -320,7 +322,7 @@ describe StringToNumber do
       it 'handles invalid inputs gracefully' do
         expect(StringToNumber.in_numbers('invalid')).to eq(0)
         expect(StringToNumber.in_numbers('not a number')).to eq(0)
-        expect(StringToNumber.in_numbers('123')).to eq(0)  # numeric strings
+        expect(StringToNumber.in_numbers('123')).to eq(0) # numeric strings
       end
     end
 
