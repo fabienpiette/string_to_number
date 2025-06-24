@@ -1,8 +1,12 @@
-# StringToNumber
-
-[![Gem Version](https://badge.fury.io/rb/string_to_number.svg)](https://badge.fury.io/rb/string_to_number)
-[![Ruby](https://github.com/FabienPiette/string_to_number/workflows/Ruby/badge.svg)](https://github.com/FabienPiette/string_to_number/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<div align="center">
+  <img src="logo.png" alt="StringToNumber Logo" width="200" height="200">
+  
+  # StringToNumber
+  
+  [![Gem Version](https://badge.fury.io/rb/string_to_number.svg)](https://badge.fury.io/rb/string_to_number)
+  [![Ruby](https://github.com/FabienPiette/string_to_number/workflows/Ruby/badge.svg)](https://github.com/FabienPiette/string_to_number/actions)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+</div>
 
 A high-performance Ruby gem for converting French written numbers into their numeric equivalents. Features intelligent caching, thread-safe operations, and support for complex French number formats.
 
