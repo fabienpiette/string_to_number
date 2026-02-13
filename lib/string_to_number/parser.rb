@@ -21,7 +21,8 @@ module StringToNumber
     MULTIPLIERS = StringToNumber::ToNumber::POWERS_OF_TEN.freeze
 
     # Pre-compiled regex patterns for optimal performance
-    MULTIPLIER_KEYS = MULTIPLIERS.keys.reject { |k| %w[un dix].include?(k) }
+    MULTIPLIER_KEYS = MULTIPLIERS.keys
+                                 .reject { |k| %w[un dix].include?(k) }
                                  .sort_by(&:length).reverse.freeze
     MULTIPLIER_PATTERN = /(?<f>.*?)\s?(?<m>#{MULTIPLIER_KEYS.join('|')})/.freeze
     QUATRE_VINGT_PATTERN = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.freeze
