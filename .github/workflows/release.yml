@@ -46,17 +46,11 @@ jobs:
         ruby-version: '3.3'
         bundler-cache: true
 
-    - name: Build gem
-      run: gem build string_to_number.gemspec
-
-    - name: Configure trusted publisher credentials
-      uses: rubygems/configure-rubygems-credentials@v1
-
     - name: Publish to RubyGems
-      run: gem push string_to_number-*.gem
+      uses: rubygems/release-gem@v1
 
     - name: Create GitHub Release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TAG: ${{ github.ref_name }}
-      run: gh release create "$TAG" string_to_number-*.gem --generate-notes
+      run: gh release create "$TAG" --generate-notes
