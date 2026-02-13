@@ -1,17 +1,15 @@
 # StringToNumber
 
-Convert French written numbers into their numeric equivalents in Ruby.
-
----
-
-<p align="center">
-  <img src="docs/demo.gif" alt="goscribe demo" width="800">
-</p>
-
 <p align="center">
   <a href="https://badge.fury.io/rb/string_to_number"><img src="https://badge.fury.io/rb/string_to_number.svg" alt="Gem Version"></a>
   <a href="https://github.com/FabienPiette/string_to_number/actions"><img src="https://github.com/FabienPiette/string_to_number/workflows/CI/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+</p>
+
+Convert French written numbers into their numeric equivalents in Ruby.
+
+<p align="center">
+  <img src="docs/demo.gif" alt="goscribe demo" width="800">
 </p>
 
 ## Quick Start
