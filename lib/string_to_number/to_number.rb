@@ -199,12 +199,11 @@ module StringToNumber
       # - "quatre-vingt" / "quatre vingts" (with/without 's')
       # - "quatre-vingt-dix" / "quatre vingts dix" (90)
       # - Space vs hyphen variations
-      elsif (m = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.match(sentence))
+      elsif (m = /(?<base>quatre[-\s]vingt(?:s?)(?:[-\s]dix)?)(?:[-\s]?)(?<suffix>\w*)/.match(sentence))
         # Normalize spacing to hyphens for consistent lookup
-        normalize_str = m[1].tr(' ', '-')
+        normalize_str = m[:base].tr(' ', '-')
 
         # Remove trailing 's' from "quatre-vingts" if present
-        # Bug fix: use [-1] instead of [length] for last character
         normalize_str = normalize_str[0...-1] if normalize_str[-1] == 's'
 
         # Remove the matched portion from sentence
@@ -213,7 +212,7 @@ module StringToNumber
         # Return sum of: remaining sentence + normalized quatre-vingt value + any suffix
         # Example: "quatre-vingt-cinq" -> EXCEPTIONS["quatre-vingt"] + EXCEPTIONS["cinq"]
         extract(sentence, keys) +
-          EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[8]] || 0)
+          EXCEPTIONS[normalize_str] + (EXCEPTIONS[m[:suffix]] || 0)
       else
         # Fallback: use match() method for simple word combinations
         match(sentence)

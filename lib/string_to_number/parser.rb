@@ -25,18 +25,17 @@ module StringToNumber
                                  .reject { |k| %w[un dix].include?(k) }
                                  .sort_by(&:length).reverse.freeze
     MULTIPLIER_PATTERN = /(?<f>.*?)\s?(?<m>#{MULTIPLIER_KEYS.join('|')})/.freeze
-    QUATRE_VINGT_PATTERN = /(quatre(-|\s)vingt(s?)((-|\s)dix)?)((-|\s)?)(\w*)/.freeze
+    QUATRE_VINGT_PATTERN = /(?<base>quatre[-\s]vingt(?:s?)(?:[-\s]dix)?)(?:[-\s]?)(?<suffix>\w*)/.freeze
 
     # Cache configuration
     MAX_CACHE_SIZE = 1000
     private_constant :MAX_CACHE_SIZE
 
-    # Thread-safe class-level caches
-    @conversion_cache = {}
-    @cache_access_order = []
-    @instance_cache = {}
+    # Thread-safe LRU cache using Hash insertion order (Ruby 1.9+)
+    @cache = {}
+    @cache_hits = 0
+    @cache_lookups = 0
     @cache_mutex = Mutex.new
-    @instance_mutex = Mutex.new
 
     class << self
       # Convert French text to number using cached parser instance
@@ -50,28 +49,34 @@ module StringToNumber
         normalized = normalize_text(text)
         return 0 if normalized.empty?
 
-        # Check conversion cache first
-        cached_result = get_cached_conversion(normalized)
-        return cached_result if cached_result
+        @cache_mutex.synchronize do
+          @cache_lookups += 1
 
-        # Get or create parser instance and convert
-        parser = get_cached_instance(normalized)
-        result = parser.parse_optimized(normalized)
+          if @cache.key?(normalized)
+            @cache_hits += 1
+            # Delete and reinsert to move to end (most recently used)
+            value = @cache.delete(normalized)
+            @cache[normalized] = value
+            return value
+          end
+        end
 
-        # Cache the result
-        cache_conversion(normalized, result)
+        result = new(normalized).parse_optimized(normalized)
+
+        @cache_mutex.synchronize do
+          @cache.delete(@cache.first[0]) if @cache.size >= MAX_CACHE_SIZE
+          @cache[normalized] = result
+        end
+
         result
       end
 
       # Clear all caches
       def clear_caches!
         @cache_mutex.synchronize do
-          @conversion_cache.clear
-          @cache_access_order.clear
-        end
-
-        @instance_mutex.synchronize do
-          @instance_cache.clear
+          @cache.clear
+          @cache_hits = 0
+          @cache_lookups = 0
         end
       end
 
@@ -79,10 +84,9 @@ module StringToNumber
       def cache_stats
         @cache_mutex.synchronize do
           {
-            conversion_cache_size: @conversion_cache.size,
+            conversion_cache_size: @cache.size,
             conversion_cache_limit: MAX_CACHE_SIZE,
-            instance_cache_size: @instance_cache.size,
-            cache_hit_ratio: calculate_hit_ratio
+            cache_hit_ratio: @cache_lookups.zero? ? 0.0 : @cache_hits.to_f / @cache_lookups
           }
         end
       end
@@ -95,43 +99,6 @@ module StringToNumber
 
       def normalize_text(text)
         text.to_s.downcase.strip
-      end
-
-      def get_cached_conversion(normalized_text)
-        @cache_mutex.synchronize do
-          if @conversion_cache.key?(normalized_text)
-            # Update LRU order
-            @cache_access_order.delete(normalized_text)
-            @cache_access_order.push(normalized_text)
-            return @conversion_cache[normalized_text]
-          end
-        end
-        nil
-      end
-
-      def cache_conversion(normalized_text, result)
-        @cache_mutex.synchronize do
-          # LRU eviction
-          if @conversion_cache.size >= MAX_CACHE_SIZE
-            oldest = @cache_access_order.shift
-            @conversion_cache.delete(oldest)
-          end
-
-          @conversion_cache[normalized_text] = result
-          @cache_access_order.push(normalized_text)
-        end
-      end
-
-      def get_cached_instance(normalized_text)
-        @instance_mutex.synchronize do
-          @instance_cache[normalized_text] ||= new(normalized_text)
-        end
-      end
-
-      def calculate_hit_ratio
-        return 0.0 if @cache_access_order.empty?
-
-        @conversion_cache.size.to_f / @cache_access_order.size
       end
     end
 
@@ -154,7 +121,7 @@ module StringToNumber
       return WORD_VALUES[text] if WORD_VALUES.key?(text)
 
       # Use the proven extraction algorithm from the original implementation
-      extract_optimized(text, MULTIPLIER_KEYS.join('|'))
+      extract_optimized(text)
     end
 
     private
@@ -162,7 +129,7 @@ module StringToNumber
     # Optimized version of the original extract method
     # This maintains the exact logic of the working implementation
     # but with performance improvements
-    def extract_optimized(sentence, keys, detail: false)
+    def extract_optimized(sentence, detail: false)
       return 0 if sentence.nil? || sentence.empty?
 
       # Direct lookup
@@ -180,7 +147,7 @@ module StringToNumber
 
         # Handle compound numbers
         if higher_multiple_exists?(result[:m], sentence)
-          details = extract_optimized(sentence, keys, detail: true)
+          details = extract_optimized(sentence, detail: true)
           factor = (factor * multiple_of_ten) + details[:factor]
           multiple_of_ten = details[:multiple_of_ten]
           sentence = details[:sentence]
@@ -195,17 +162,17 @@ module StringToNumber
           }
         end
 
-        extract_optimized(sentence, keys) + (factor * multiple_of_ten)
+        extract_optimized(sentence) + (factor * multiple_of_ten)
 
       # Quatre-vingt special handling
       elsif (m = QUATRE_VINGT_PATTERN.match(sentence))
-        normalize_str = m[1].tr(' ', '-')
+        normalize_str = m[:base].tr(' ', '-')
         normalize_str = normalize_str[0...-1] if normalize_str[-1] == 's'
 
         sentence = sentence.gsub(m[0], '')
 
-        extract_optimized(sentence, keys) +
-          WORD_VALUES[normalize_str] + (WORD_VALUES[m[8]] || 0)
+        extract_optimized(sentence) +
+          WORD_VALUES[normalize_str] + (WORD_VALUES[m[:suffix]] || 0)
       else
         match_optimized(sentence)
       end

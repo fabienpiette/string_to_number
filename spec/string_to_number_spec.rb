@@ -324,6 +324,11 @@ describe StringToNumber do
         expect(StringToNumber.in_numbers('not a number')).to eq(0)
         expect(StringToNumber.in_numbers('123')).to eq(0) # numeric strings
       end
+
+      it 'handles non-string inputs via to_s' do
+        expect(StringToNumber.in_numbers(123)).to eq(0)
+        expect(StringToNumber.in_numbers(0)).to eq(0)
+      end
     end
 
     context 'mixed valid and invalid content' do
@@ -331,6 +336,86 @@ describe StringToNumber do
         expect(StringToNumber.in_numbers('vingt invalid')).to eq(20)
         expect(StringToNumber.in_numbers('invalid vingt')).to eq(20)
       end
+    end
+  end
+
+  describe 'legacy implementation (use_optimized: false)' do
+    it 'converts simple numbers' do
+      expect(StringToNumber.in_numbers('vingt et un', use_optimized: false)).to eq(21)
+      expect(StringToNumber.in_numbers('cent', use_optimized: false)).to eq(100)
+      expect(StringToNumber.in_numbers('mille', use_optimized: false)).to eq(1000)
+    end
+
+    it 'converts complex numbers' do
+      expect(StringToNumber.in_numbers('trois cent quarante six mille sept cent quatre-vingt-dix neuf', use_optimized: false)).to eq(346_799)
+    end
+
+    it 'matches optimized implementation results' do
+      test_cases = ['vingt et un', 'cent', 'mille deux cent trente-quatre', 'quatre-vingt-dix-neuf', 'un million']
+      test_cases.each do |text|
+        expect(StringToNumber.in_numbers(text, use_optimized: false)).to eq(StringToNumber.in_numbers(text)),
+                                                                         "Mismatch for '#{text}'"
+      end
+    end
+  end
+
+  describe '.valid_french_number?' do
+    it 'returns true for valid French number words' do
+      expect(StringToNumber.valid_french_number?('vingt')).to be true
+      expect(StringToNumber.valid_french_number?('cent')).to be true
+      expect(StringToNumber.valid_french_number?('vingt et un')).to be true
+      expect(StringToNumber.valid_french_number?('trois cent quarante six mille')).to be true
+    end
+
+    it 'returns false for non-number strings' do
+      expect(StringToNumber.valid_french_number?('bonjour')).to be false
+      expect(StringToNumber.valid_french_number?('hello world')).to be false
+    end
+
+    it 'returns false for empty and nil inputs' do
+      expect(StringToNumber.valid_french_number?('')).to be false
+      expect(StringToNumber.valid_french_number?(nil)).to be false
+    end
+  end
+
+  describe '.cache_stats' do
+    before { StringToNumber.clear_caches! }
+
+    it 'returns a hash with expected keys' do
+      stats = StringToNumber.cache_stats
+      expect(stats).to include(:conversion_cache_size, :conversion_cache_limit, :cache_hit_ratio)
+    end
+
+    it 'reports zero hit ratio when cache is empty' do
+      expect(StringToNumber.cache_stats[:cache_hit_ratio]).to eq(0.0)
+    end
+
+    it 'tracks cache size after conversions' do
+      StringToNumber.in_numbers('vingt')
+      StringToNumber.in_numbers('trente')
+      expect(StringToNumber.cache_stats[:conversion_cache_size]).to eq(2)
+    end
+
+    it 'reports non-zero hit ratio after cache hits' do
+      StringToNumber.in_numbers('vingt')
+      StringToNumber.in_numbers('vingt') # cache hit
+      expect(StringToNumber.cache_stats[:cache_hit_ratio]).to be > 0.0
+    end
+  end
+
+  describe '.clear_caches!' do
+    it 'resets cache size to zero' do
+      StringToNumber.in_numbers('vingt')
+      StringToNumber.in_numbers('trente')
+      StringToNumber.clear_caches!
+      expect(StringToNumber.cache_stats[:conversion_cache_size]).to eq(0)
+    end
+
+    it 'resets hit ratio to zero' do
+      StringToNumber.in_numbers('vingt')
+      StringToNumber.in_numbers('vingt')
+      StringToNumber.clear_caches!
+      expect(StringToNumber.cache_stats[:cache_hit_ratio]).to eq(0.0)
     end
   end
 end
