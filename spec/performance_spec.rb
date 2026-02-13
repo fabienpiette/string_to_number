@@ -241,6 +241,7 @@ describe 'StringToNumber Performance Tests' do
       iterations = 1000
 
       test_groups.each do |group_name, test_cases|
+        StringToNumber.clear_caches!
         total_time = Benchmark.realtime do
           test_cases.each do |text|
             iterations.times { StringToNumber.in_numbers(text) }
