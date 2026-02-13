@@ -46,8 +46,14 @@ jobs:
         ruby-version: '3.3'
         bundler-cache: true
 
+    - name: Build gem
+      run: gem build string_to_number.gemspec
+
+    - name: Configure RubyGems credentials
+      uses: rubygems/configure-rubygems-credentials@v1.0.0
+
     - name: Publish to RubyGems
-      uses: rubygems/release-gem@v1
+      run: gem push string_to_number-*.gem
 
     - name: Create GitHub Release
       env:
